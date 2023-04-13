@@ -2,7 +2,7 @@
 
 This is a tool that converts a public Spotify playlist to a Tidal playlist.
 
-## Instalation
+## Installation
 
 ```sh
 go install github.com/michaeldbianchi/syncstream@latest
@@ -11,7 +11,8 @@ go install github.com/michaeldbianchi/syncstream@latest
 ## Usage
 
 ```sh
-export TIDAL_BEARER_TOKEN=<grab from UI>
+cp .env.example .env
+# Manually set tidal and spotify env vars
 
 syncstream <spotify_playlist_id>
 ```
