@@ -1,0 +1,52 @@
+defmodule StreamsyncWeb.UserLoginLive do
+  use StreamsyncWeb, :live_view
+
+  def render(assigns) do
+    ~H"""
+    <div class="mx-auto max-w-sm">
+      <.header class="text-center">
+        Log in to account
+        <:subtitle>
+          Don't have an account?
+          <.link navigate={~p"/users/register"} class="font-semibold text-brand hover:underline">
+            Sign up
+          </.link>
+          for an account now.
+        </:subtitle>
+      </.header>
+
+      <.simple_form for={@form} id="login_form" action={~p"/users/log_in"} phx-update="ignore">
+        <.link
+          href={~p"/auth/spotify"}
+          class="inline-flex items-center justify-center w-full px-4 py-2 mt-4 text-sm font-semibold text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        >
+          Spotify
+        </.link>
+        <.link
+          href={~p"/auth/tidal"}
+          class="inline-flex items-center justify-center w-full px-4 py-2 mt-4 text-sm font-semibold text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        >
+          Tidal
+        </.link>
+
+        <.input field={@form[:email]} type="email" label="Email" required />
+
+        <:actions>
+          <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
+        </:actions>
+        <:actions>
+          <.button phx-disable-with="Logging in..." class="w-full">
+            Log in <span aria-hidden="true">→</span>
+          </.button>
+        </:actions>
+      </.simple_form>
+    </div>
+    """
+  end
+
+  def mount(_params, _session, socket) do
+    email = Phoenix.Flash.get(socket.assigns.flash, :email)
+    form = to_form(%{"email" => email}, as: "user")
+    {:ok, assign(socket, form: form), temporary_assigns: [form: form]}
+  end
+end
