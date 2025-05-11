@@ -1,17 +1,42 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# The directory Mix will write compiled artifacts to.
+/_build/
 
-# Test binary, built with `go test -c`
-*.test
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# The directory Mix downloads your dependencies sources to.
+/deps/
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-syncstream
+# Where 3rd-party dependencies like ExDoc output generated docs.
+/doc/
+
+# Ignore .fetch files in case you like to edit your project deps locally.
+/.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
+*.ez
+
+# Temporary files, for example, from tests.
+/tmp/
+
+# Ignore package tarball (built via "mix hex.build").
+streamsync-*.tar
+
+# Ignore assets that are produced by build tools.
+/priv/static/assets/
+
+# Ignore digested assets cache.
+/priv/static/cache_manifest.json
+
+# In case you use Node.js/npm, you want to ignore these.
+npm-debug.log
+/assets/node_modules/
+
+# Database files
+*.db
+*.db-*
+
 .env
