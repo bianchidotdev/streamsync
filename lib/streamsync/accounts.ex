@@ -83,40 +83,46 @@ defmodule Streamsync.Accounts do
       # If a connection exists, update it with the most recent creds
       %UserProviderConnection{} = connection ->
         Repo.transaction(fn ->
-          connection
-          |> UserProviderConnection.changeset(%{
-            access_token: auth.credentials.token,
-            refresh_token: auth.credentials.refresh_token,
-            expires_at: parse_expires_at,
-            provider_email: provider_email
-          })
-          |> Repo.update!()
-
-          # Return the associated user
-          Repo.get(User, connection.user_id)
+          with {:ok, updated_connection} <-
+                 connection
+                 |> UserProviderConnection.changeset(%{
+                   access_token: auth.credentials.token,
+                   refresh_token: auth.credentials.refresh_token,
+                   expires_at: parse_expires_at,
+                   provider_email: provider_email
+                 })
+                 |> Repo.update(),
+               %User{} = user <- Repo.get(User, updated_connection.user_id) do
+            user
+          else
+            nil -> {:error, :user_not_found}
+            {:error, reason} -> Repo.rollback(reason)
+          end
         end)
 
       # If no connection exists, create a new user and connection
       nil ->
         Repo.transaction(fn ->
-          user =
-            %User{}
-            |> User.registration_changeset(%{email: provider_email})
-            |> Repo.insert!()
-
-          %UserProviderConnection{}
-          |> UserProviderConnection.changeset(%{
-            provider: provider_string,
-            provider_email: provider_email,
-            provider_uid: provider_uid,
-            access_token: auth.credentials.token,
-            refresh_token: auth.credentials.refresh_token,
-            expires_at: parse_expires_at,
-            user_id: user.id
-          })
-          |> Repo.insert!()
-
-          user
+          with {:ok, user} <-
+                 %User{}
+                 |> User.registration_changeset(%{email: provider_email})
+                 |> Repo.insert(),
+               {:ok, _connection} <-
+                 %UserProviderConnection{}
+                 |> UserProviderConnection.changeset(%{
+                   provider: provider_string,
+                   provider_email: provider_email,
+                   provider_uid: provider_uid,
+                   access_token: auth.credentials.token,
+                   refresh_token: auth.credentials.refresh_token,
+                   expires_at: parse_expires_at,
+                   user_id: user.id
+                 })
+                 |> Repo.insert() do
+            user
+          else
+            {:error, reason} -> Repo.rollback(reason)
+          end
         end)
     end
   end

@@ -19,7 +19,27 @@ defmodule StreamsyncWeb.AuthController do
       {:ok, user} ->
         StreamsyncWeb.UserAuth.log_in_user(conn, user)
 
-      _ ->
+      {:error, %Ecto.Changeset{errors: [email: {"has already been taken", _details}]}} ->
+        conn
+        |> put_flash(
+          :error,
+          "An account with this email already exists. Please log in using the original provider."
+        )
+        |> redirect(to: "/")
+
+      # error #=> {:error,
+      #  #Ecto.Changeset<
+      #    action: :insert,
+      #    changes: %{email: "michael@bianchi.dev"},
+      #    errors: [
+      #      email: {"has already been taken",
+      #       [validation: :unsafe_unique, fields: [:email]]}
+      #    ],
+      #    data: #Streamsync.Accounts.User<>,
+      #    valid?: false,
+      #    ...
+      #  >}
+      error ->
         conn
         |> put_flash(:error, "Authentication failed")
         |> redirect(to: "/")
