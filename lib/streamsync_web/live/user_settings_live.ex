@@ -1,4 +1,5 @@
 defmodule StreamsyncWeb.UserSettingsLive do
+  require Logger
   use StreamsyncWeb, :live_view
 
   alias Streamsync.Accounts
@@ -23,14 +24,40 @@ defmodule StreamsyncWeb.UserSettingsLive do
                 Email: {connection.provider_email}
               </p>
             </div>
-            <div>
+            <div class="flex items-center space-x-4">
               <p class="text-sm text-gray-500">
                 UID: {connection.provider_uid}
               </p>
+              <%= if length(@provider_connections) > 1 do %>
+                <button
+                  phx-click="delete_provider_connection"
+                  phx-value-id={connection.id}
+                  class="text-red-600 hover:text-red-900"
+                  data-confirm="Are you sure you want to disconnect this provider?"
+                >
+                  <.icon name="hero-trash" class="h-5 w-5" />
+                </button>
+              <% end %>
             </div>
           </li>
         <% end %>
       </ul>
+
+      <%= if @unconnected_providers != [] do %>
+        <div class="mt-6">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Connect Additional Providers</h3>
+          <div class="mt-4 space-y-4">
+            <%= for provider <- @unconnected_providers do %>
+              <.link
+                href={~p"/auth/#{provider}"}
+                class="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-semibold text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Connect {String.capitalize(provider)}
+              </.link>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
 
     <div class="space-y-12 divide-y">
@@ -67,6 +94,7 @@ defmodule StreamsyncWeb.UserSettingsLive do
   def mount(_params, _session, socket) do
     user = Streamsync.Accounts.get_user_with_provider_connections(socket.assigns.current_user.id)
     email_changeset = Accounts.change_user_email(user)
+    unconnected_providers = Streamsync.Accounts.get_unconnected_providers(user)
 
     socket =
       socket
@@ -74,6 +102,7 @@ defmodule StreamsyncWeb.UserSettingsLive do
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:trigger_submit, false)
       |> assign(:provider_connections, user.provider_connections)
+      |> assign(:unconnected_providers, unconnected_providers)
 
     {:ok, socket}
   end
@@ -107,6 +136,43 @@ defmodule StreamsyncWeb.UserSettingsLive do
 
       {:error, changeset} ->
         {:noreply, assign(socket, :email_form, to_form(Map.put(changeset, :action, :insert)))}
+    end
+  end
+
+  def handle_event("delete_provider_connection", %{"id" => connection_id}, socket) do
+    user_id = socket.assigns.current_user.id
+
+    case Accounts.delete_user_provider_connection(String.to_integer(connection_id), user_id) do
+      {:ok, _connection} ->
+        user = Streamsync.Accounts.get_user_with_provider_connections(user_id)
+        unconnected_providers = Streamsync.Accounts.get_unconnected_providers(user)
+
+        socket =
+          socket
+          |> put_flash(:info, "Provider connection successfully removed.")
+          |> assign(:provider_connections, user.provider_connections)
+          |> assign(:unconnected_providers, unconnected_providers)
+
+        {:noreply, socket}
+
+      {:error, :last_connection} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           "Cannot remove your last provider connection. You would be locked out of your account."
+         )}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, "Provider connection not found.")}
+
+      {:error, reason} ->
+        Logger.error(
+          "Failed to remove provider connection for user #{user_id} with connection ID #{connection_id}",
+          error: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, "Failed to remove provider connection.")}
     end
   end
 end

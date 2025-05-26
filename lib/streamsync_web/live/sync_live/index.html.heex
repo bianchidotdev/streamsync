@@ -1,0 +1,46 @@
+<.header>
+  Listing Sync Jobs
+  <:actions>
+    <.link patch={~p"/sync/new"}>
+      <.button>New Sync</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="sync-jobs"
+  rows={@streams.jobs}
+  row_click={fn {_id, job} -> JS.navigate(~p"/sync/jobs/#{job}") end}
+>
+  <:col :let={{_id, job}} label="Title">{job.email}</:col>
+  <:action :let={{_id, job}}>
+    <div class="sr-only">
+      <.link navigate={~p"/sync/jobs/#{job}"}>Show</.link>
+    </div>
+    <.link patch={~p"/sync/jobs/#{job}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, job}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: job.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<%!-- <.modal
+  :if={@live_action in [:new, :edit]}
+  id="job-modal"
+  show
+  on_cancel={JS.patch(~p"/sync/jobs")}
+>
+  <.live_component
+    module={StreamsyncWeb.PostLive.FormComponent}
+    id={@job.id || :new}
+    title={@page_title}
+    action={@live_action}
+    job={@job}
+    patch={~p"/sync/jobs"}
+  />
+</.modal> --%>

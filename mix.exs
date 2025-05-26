@@ -8,6 +8,7 @@ defmodule Streamsync.MixProject do
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
       deps: deps()
     ]
@@ -63,7 +64,10 @@ defmodule Streamsync.MixProject do
       {:ueberauth, "~> 0.10"},
       # {:ueberauth_spotify, git: "https://github.com/sondr3/ueberauth_spotify", tag: "v0.1.0"},
       {:ueberauth_spotify, path: "../ueberauth_spotify"},
-      {:ueberauth_tidal, path: "../ueberauth_tidal"}
+      {:ueberauth_tidal, path: "../ueberauth_tidal"},
+
+      # local dev
+      {:tidewave, "~> 0.1", only: [:dev]}
     ]
   end
 

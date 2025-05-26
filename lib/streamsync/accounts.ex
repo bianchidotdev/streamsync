@@ -9,6 +9,8 @@ defmodule Streamsync.Accounts do
 
   alias Streamsync.Accounts.{User, UserToken, UserNotifier}
 
+  @available_providers ["spotify", "tidal"]
+
   ## Database getters
 
   @doc """
@@ -70,6 +72,21 @@ defmodule Streamsync.Accounts do
     |> Repo.preload(:provider_connections)
   end
 
+  @doc """
+  Gets the list of providers that a user has not yet connected to.
+
+  ## Examples
+
+      iex> get_unconnected_providers(user)
+      ["spotify", "tidal"]
+  """
+  def get_unconnected_providers(user) do
+    user = user |> Repo.preload(:provider_connections)
+    connected_providers = Enum.map(user.provider_connections, & &1.provider)
+
+    Enum.filter(@available_providers, fn provider -> provider not in connected_providers end)
+  end
+
   def handle_oauth_login(provider, %Ueberauth.Auth{} = auth) do
     provider_string = Atom.to_string(provider)
     provider_uid = auth.uid
@@ -129,6 +146,68 @@ defmodule Streamsync.Accounts do
             {:error, reason} -> Repo.rollback(reason)
           end
         end)
+    end
+  end
+
+  def handle_new_oauth_connection(provider, %Ueberauth.Auth{} = auth, user) do
+    provider_string = Atom.to_string(provider)
+    provider_uid = auth.uid
+    provider_email = auth.info.email
+
+    parse_expires_at =
+      case auth.credentials.expires_at do
+        nil -> nil
+        expires_at -> DateTime.from_unix!(expires_at, :second)
+      end
+
+    %UserProviderConnection{}
+    |> UserProviderConnection.changeset(%{
+      provider: provider_string,
+      provider_email: provider_email,
+      provider_uid: provider_uid,
+      access_token: auth.credentials.token,
+      refresh_token: auth.credentials.refresh_token,
+      expires_at: parse_expires_at,
+      user_id: user.id
+    })
+    |> Repo.insert()
+  end
+
+  @doc """
+  Deletes a user provider connection.
+
+  Returns {:error, :last_connection} if this is the user's last connection to prevent
+  users from being locked out of their account.
+
+  ## Examples
+
+      iex> delete_user_provider_connection(connection_id, user_id)
+      {:ok, %UserProviderConnection{}}
+
+      iex> delete_user_provider_connection(connection_id, user_id)
+      {:error, :last_connection}
+
+  """
+  def delete_user_provider_connection(connection_id, user_id) do
+    user = get_user_with_provider_connections(user_id)
+
+    # Check if this is the last connection
+    if length(user.provider_connections) <= 1 do
+      {:error, :last_connection}
+    else
+      connection =
+        Enum.find(user.provider_connections, fn conn ->
+          conn.id == connection_id && conn.user_id == user_id
+        end)
+
+      case connection do
+        nil ->
+          {:error, :not_found}
+
+        # TODO: soft delete?
+        connection ->
+          Repo.delete(connection)
+      end
     end
   end
 
