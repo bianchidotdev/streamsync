@@ -10,6 +10,29 @@ defmodule StreamsyncWeb.UserSettingsLive do
       <:subtitle>Manage your email address and account settings</:subtitle>
     </.header>
 
+    <div class="space-y-6">
+      <h3 class="text-lg font-medium leading-6 text-gray-900">Connected Providers</h3>
+      <ul role="list" class="divide-y divide-gray-200">
+        <%= for connection <- @provider_connections do %>
+          <li class="py-4 flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-900">
+                Provider: {connection.provider}
+              </p>
+              <p class="text-sm text-gray-500">
+                Email: {connection.provider_email}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">
+                UID: {connection.provider_uid}
+              </p>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+
     <div class="space-y-12 divide-y">
       <div>
         <.simple_form
@@ -42,7 +65,7 @@ defmodule StreamsyncWeb.UserSettingsLive do
   end
 
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_user
+    user = Streamsync.Accounts.get_user_with_provider_connections(socket.assigns.current_user.id)
     email_changeset = Accounts.change_user_email(user)
 
     socket =
@@ -50,6 +73,7 @@ defmodule StreamsyncWeb.UserSettingsLive do
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:trigger_submit, false)
+      |> assign(:provider_connections, user.provider_connections)
 
     {:ok, socket}
   end

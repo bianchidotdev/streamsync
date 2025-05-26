@@ -65,6 +65,11 @@ defmodule Streamsync.Accounts do
   #   end
   # end
 
+  def get_user_with_provider_connections(user_id) do
+    Repo.get(User, user_id)
+    |> Repo.preload(:provider_connections)
+  end
+
   def handle_oauth_login(provider, %Ueberauth.Auth{} = auth) do
     provider_string = Atom.to_string(provider)
     provider_uid = auth.uid

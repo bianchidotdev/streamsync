@@ -10,7 +10,6 @@ defmodule StreamsyncWeb.AuthController do
   end
 
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, _params) do
-    dbg()
     email = auth.info.email
     provider = auth.provider
     Logger.info("Login for #{provider} with email: #{email}")
@@ -27,19 +26,9 @@ defmodule StreamsyncWeb.AuthController do
         )
         |> redirect(to: "/")
 
-      # error #=> {:error,
-      #  #Ecto.Changeset<
-      #    action: :insert,
-      #    changes: %{email: "michael@bianchi.dev"},
-      #    errors: [
-      #      email: {"has already been taken",
-      #       [validation: :unsafe_unique, fields: [:email]]}
-      #    ],
-      #    data: #Streamsync.Accounts.User<>,
-      #    valid?: false,
-      #    ...
-      #  >}
-      error ->
+      {:error, error} ->
+        Logger.error("Error during OAuth login: #{inspect(error)}")
+
         conn
         |> put_flash(:error, "Authentication failed")
         |> redirect(to: "/")
