@@ -1,0 +1,117 @@
+<.header>
+  Music Sync
+  <:subtitle>Select source and destination platforms to sync your music</:subtitle>
+</.header>
+
+<div class="mt-8 mb-8">
+  <div class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div class="px-4 py-5 sm:px-6">
+      <.header>
+        Step 1: Select Source Platform
+        <:subtitle>Choose the platform you want to sync songs from</:subtitle>
+      </.header>
+    </div>
+    <div class="px-4 py-5 sm:p-6">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <%= for provider <- @available_providers do %>
+          <div
+            phx-click="select_from_provider"
+            phx-value-provider={provider}
+            class={"cursor-pointer p-4 border rounded-lg text-center #{if @from_provider == provider, do: "border-blue-500 bg-blue-50", else: "border-gray-300 hover:bg-gray-50"}"}
+          >
+            <div class="text-lg font-medium">{String.capitalize(provider)}</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-md mt-4">
+    <div class="px-4 py-5 sm:px-6">
+      <.header>
+        Step 2: Select Destination Platform
+        <:subtitle>Choose the platform you want to sync songs to</:subtitle>
+      </.header>
+    </div>
+    <div class="px-4 py-5 sm:p-6">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <%= for provider <- @available_providers do %>
+          <div
+            phx-click="select_to_provider"
+            phx-value-provider={provider}
+            class={"cursor-pointer p-4 border rounded-lg text-center #{if provider == @from_provider, do: "opacity-50 cursor-not-allowed", else: if(@to_provider == provider, do: "border-blue-500 bg-blue-50", else: "border-gray-300 hover:bg-gray-50")}"}
+            disabled={provider == @from_provider}
+          >
+            <div class="text-lg font-medium">{String.capitalize(provider)}</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%= if @from_provider && @to_provider do %>
+  <div class="mt-4 mb-4">
+    <.button phx-click="load_songs">
+      Load Songs from {String.capitalize(@from_provider)}
+    </.button>
+  </div>
+<% end %>
+
+<%= if @from_provider && @songs.loading do %>
+  <div class="flex justify-center items-center py-8">
+    <span class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></span>
+  </div>
+<% end %>
+
+<%= if @from_provider && @to_provider && !@songs.loading do %>
+  <div class="bg-white shadow overflow-hidden sm:rounded-md mt-4">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+      <div>
+        <.header>
+          Your Songs from {String.capitalize(@from_provider)}
+          <:subtitle>
+            Select the songs you want to sync to {String.capitalize(@to_provider)}
+          </:subtitle>
+        </.header>
+      </div>
+      <div>
+        <.button phx-click="toggle_select_all" variant="outline" size="sm">
+          <%= if length(@selected_songs) == length(@songs.result) do %>
+            Deselect All
+          <% else %>
+            Select All
+          <% end %>
+        </.button>
+      </div>
+    </div>
+    <ul class="divide-y divide-gray-200">
+      <%= for song <- @songs.result do %>
+        <li id={"song-row-#{song.id}"} class="px-4 py-4 sm:px-6 hover:bg-gray-50">
+          <div class="flex items-center">
+            <input
+              id={"song-#{song.id}"}
+              type="checkbox"
+              phx-click="toggle_select"
+              phx-value-id={song.id}
+              checked={song.id in @selected_songs}
+              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label for={"song-#{song.id}"} class="ml-3 block">
+              <div class="font-medium text-gray-900">{song.name}</div>
+              <div class="text-sm text-gray-500">
+                {song.artist} • {song.album}
+              </div>
+            </label>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="mt-6 flex justify-end">
+    <.button phx-click="create_sync_job" disabled={@selected_songs == []}>
+      Sync {length(@selected_songs)} Songs to {String.capitalize(@to_provider)}
+    </.button>
+  </div>
+<% end %>

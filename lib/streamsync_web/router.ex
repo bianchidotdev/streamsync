@@ -76,6 +76,7 @@ defmodule StreamsyncWeb.Router do
 
       # sync
       live "/sync", SyncLive.Index, :index
+      live "/sync/songs", SyncSongsLive.Index, :index
       live "/sync/jobs", SyncLive.Jobs, :index
       live "/sync/jobs/:id", SyncLive.Jobs, :show
       live "/sync/jobs/:id/edit", SyncLive.Jobs, :edit
