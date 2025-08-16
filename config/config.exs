@@ -31,10 +31,25 @@ config :streamsync, StreamsyncWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :streamsync, Streamsync.Mailer, adapter: Swoosh.Adapters.Local
 
+# Configure Oban job processing
+config :streamsync, Oban,
+  engine: Oban.Engines.Lite,
+  queues: [default: 10, sync: 5],
+  repo: Streamsync.Repo,
+  notifier: Oban.Notifiers.PG,
+  prefix: false
+
 config :ueberauth, Ueberauth,
   providers: [
-    spotify: {Ueberauth.Strategy.Spotify, []},
-    tidal: {Ueberauth.Strategy.Tidal, [default_scope: "user.read playlists.read"]}
+    spotify:
+      {Ueberauth.Strategy.Spotify,
+       [default_scope: "user-read-private user-read-email user-library-read user-library-modify"]},
+    tidal:
+      {Ueberauth.Strategy.Tidal,
+       [
+         default_scope:
+           "user.read collection.read collection.write playlists.read playlists.write"
+       ]}
   ]
 
 # Configure esbuild (the version is required)

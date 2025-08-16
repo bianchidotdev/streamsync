@@ -2,4 +2,197 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* This file is for your main application CSS */
+/* Include phoenix_html to handle method=PUT/DELETE in forms and buttons. */
+
+@plugin "../vendor/heroicons";
+@plugin "../vendor/daisyui" {
+  themes: false;
+}
+
+/* Modern minimal theme - clean and accessible */
+@plugin "../vendor/daisyui-theme" {
+  name: "light";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(97% 0 0);
+  --color-base-300: oklch(94% 0 0);
+  --color-base-content: oklch(20% 0 0);
+  --color-primary: oklch(60% 0.15 220);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(65% 0.12 200);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: oklch(70% 0.14 180);
+  --color-accent-content: oklch(100% 0 0);
+  --color-neutral: oklch(25% 0 0);
+  --color-neutral-content: oklch(100% 0 0);
+  --color-info: oklch(65% 0.15 200);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(65% 0.15 150);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(75% 0.15 60);
+  --color-warning-content: oklch(20% 0 0);
+  --color-error: oklch(65% 0.15 10);
+  --color-error-content: oklch(100% 0 0);
+}
+
+/* Custom minimal component styles for enhanced accessibility */
+.minimal-card {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+}
+
+.minimal-button {
+  @apply px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.minimal-button-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.minimal-button-secondary {
+  @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-blue-500;
+}
+
+.minimal-input {
+  @apply w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+}
+
+.minimal-checkbox {
+  @apply h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded;
+}
+
+/* Accessible tab navigation */
+.minimal-tab {
+  @apply py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500;
+}
+
+.minimal-tab-active {
+  @apply border-blue-500 text-blue-600 bg-blue-50;
+}
+
+.minimal-tab-inactive {
+  @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300;
+}
+
+/* Provider selection buttons */
+.minimal-provider-button {
+  @apply w-full flex items-center justify-between px-4 py-3 rounded-lg border text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.minimal-provider-button-selected {
+  @apply bg-blue-50 border-blue-200 text-blue-900 focus:ring-blue-500;
+}
+
+.minimal-provider-button-unselected {
+  @apply bg-white border-gray-200 text-gray-700 hover:bg-gray-50 focus:ring-blue-500;
+}
+
+.minimal-provider-button-target-selected {
+  @apply bg-green-50 border-green-200 text-green-900 focus:ring-green-500;
+}
+
+/* Content cards for songs, playlists, etc */
+.minimal-item-card {
+  @apply flex items-center space-x-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer;
+}
+
+.minimal-item-card-selected {
+  @apply bg-blue-50 border-blue-200 shadow-sm;
+}
+
+.minimal-item-card-unselected {
+  @apply bg-white border-gray-200 hover:bg-gray-50 hover:shadow-sm;
+}
+
+/* Loading and status indicators */
+.minimal-spinner {
+  @apply animate-spin rounded-full border-b-2 border-blue-600;
+}
+
+.minimal-loading-overlay {
+  @apply flex items-center justify-center py-12;
+}
+
+/* Empty and error states */
+.minimal-empty-state {
+  @apply text-center py-12;
+}
+
+.minimal-empty-icon {
+  @apply mx-auto h-12 w-12 text-gray-400 mb-4;
+}
+
+.minimal-empty-title {
+  @apply text-sm font-medium text-gray-900 mb-2;
+}
+
+.minimal-empty-description {
+  @apply text-sm text-gray-500;
+}
+
+.minimal-error-state {
+  @apply text-center py-12;
+}
+
+.minimal-error-icon {
+  @apply mx-auto h-12 w-12 text-red-400 mb-4;
+}
+
+.minimal-error-title {
+  @apply text-sm font-medium text-gray-900 mb-2;
+}
+
+.minimal-error-description {
+  @apply text-sm text-gray-500;
+}
+
+/* High contrast mode support for accessibility */
+@media (prefers-contrast: high) {
+  .minimal-card {
+    @apply border-2 border-gray-900;
+  }
+
+  .minimal-button-primary {
+    @apply bg-gray-900 border-2 border-gray-900;
+  }
+
+  .minimal-button-secondary {
+    @apply border-2 border-gray-900 text-gray-900;
+  }
+
+  .minimal-input {
+    @apply border-2 border-gray-900;
+  }
+
+  .minimal-tab-active {
+    @apply border-b-4 border-blue-600;
+  }
+}
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .minimal-spinner {
+    @apply animate-none;
+  }
+
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+*:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* Ensure proper text contrast */
+.text-accessible {
+  @apply text-gray-900;
+}
+
+.bg-accessible {
+  @apply bg-white;
+}

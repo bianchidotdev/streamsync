@@ -1,46 +1,91 @@
 <.header>
-  Listing Sync Jobs
+  Sync Jobs
+  <:subtitle>Monitor your music sync operations between platforms</:subtitle>
   <:actions>
     <.link navigate={~p"/sync/songs"}>
-      <.button>Sync Songs</.button>
+      <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+        New Sync Job
+      </button>
     </.link>
   </:actions>
 </.header>
 
-<.table
-  id="sync-jobs"
-  rows={@streams.jobs}
-  row_click={fn {_id, job} -> JS.navigate(~p"/sync/jobs/#{job}") end}
->
-  <:col :let={{_id, job}} label="Title">{job.email}</:col>
-  <:action :let={{_id, job}}>
-    <div class="sr-only">
-      <.link navigate={~p"/sync/jobs/#{job}"}>Show</.link>
+<div class="mt-6">
+  <%= if @streams.jobs |> Enum.count() == 0 do %>
+    <div class="text-center py-12">
+      <div class="mx-auto h-12 w-12 text-gray-400">
+        <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"
+          />
+        </svg>
+      </div>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No sync jobs yet</h3>
+      <p class="mt-1 text-sm text-gray-500">Get started by creating your first sync job.</p>
+      <div class="mt-6">
+        <.link navigate={~p"/sync/songs"}>
+          <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+            Create Sync Job
+          </button>
+        </.link>
+      </div>
     </div>
-    <.link patch={~p"/sync/jobs/#{job}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, job}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: job.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
-
-<%!-- <.modal
-  :if={@live_action in [:new, :edit]}
-  id="job-modal"
-  show
-  on_cancel={JS.patch(~p"/sync/jobs")}
->
-  <.live_component
-    module={StreamsyncWeb.PostLive.FormComponent}
-    id={@job.id || :new}
-    title={@page_title}
-    action={@live_action}
-    job={@job}
-    patch={~p"/sync/jobs"}
-  />
-</.modal> --%>
+  <% else %>
+    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+      <table class="min-w-full divide-y divide-gray-300">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Providers
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Progress
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Created
+            </th>
+            <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" id="sync-jobs" phx-update="stream">
+          <%= for {id, job} <- @streams.jobs do %>
+            <tr id={id} class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {format_providers(job.from_provider, job.to_provider)}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class={"inline-flex px-2 py-1 text-xs font-semibold rounded-full #{status_color(job.status)} bg-gray-100"}>
+                  {format_status(job.status)}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {format_progress(job)}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {Calendar.strftime(job.inserted_at, "%b %d, %Y at %I:%M %p")}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <%= if job.status in [:pending, :processing] do %>
+                  <button
+                    phx-click="delete"
+                    phx-value-id={job.id}
+                    data-confirm="Are you sure you want to cancel this job?"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Cancel
+                  </button>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

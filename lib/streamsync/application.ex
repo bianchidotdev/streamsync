@@ -11,8 +11,8 @@ defmodule Streamsync.Application do
       StreamsyncWeb.Telemetry,
       Streamsync.Repo,
       {Ecto.Migrator,
-        repos: Application.fetch_env!(:streamsync, :ecto_repos),
-        skip: skip_migrations?()},
+       repos: Application.fetch_env!(:streamsync, :ecto_repos), skip: skip_migrations?()},
+      {Oban, oban_config()},
       {DNSCluster, query: Application.get_env(:streamsync, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Streamsync.PubSub},
       # Start the Finch HTTP client for sending emails
@@ -40,5 +40,9 @@ defmodule Streamsync.Application do
   defp skip_migrations?() do
     # By default, sqlite migrations are run when using a release
     System.get_env("RELEASE_NAME") != nil
+  end
+
+  defp oban_config do
+    Application.fetch_env!(:streamsync, Oban)
   end
 end

@@ -62,10 +62,12 @@ defmodule Streamsync.MixProject do
       {:bandit, "~> 1.5"},
       {:req, "~> 0.5"},
       {:ueberauth, "~> 0.10"},
-      # {:ueberauth_spotify, git: "https://github.com/sondr3/ueberauth_spotify", tag: "v0.1.0"},
       {:ueberauth_spotify,
        git: "https://github.com/bianchidotdev/ueberauth_spotify", branch: "main"},
       {:ueberauth_tidal, git: "https://github.com/bianchidotdev/ueberauth_tidal", branch: "main"},
+      # {:ueberauth_spotify, path: "../ueberauth_spotify"},
+      # {:ueberauth_tidal, path: "../ueberauth_tidal"},
+      {:oban, "~> 2.17"},
 
       # local dev
       {:tidewave, "~> 0.1", only: [:dev]}
